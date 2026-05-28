@@ -1,0 +1,747 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Výpočet mzdy 2026 – Mzdová kalkulačka</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <style>
+        :root {
+            --primary: #1a56db;
+            --primary-light: #ebf0ff;
+            --primary-dark: #1239a5;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --surface: #ffffff;
+            --bg: #f1f5f9;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+
+        /* Hlavička */
+        .site-header { background: var(--primary-dark); color: #fff; padding: 1.25rem 0; }
+        .site-header h1 { font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.02em; }
+        .site-header .subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+        .header-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 3px 12px; font-size: 0.75rem; color: #fff; }
+
+        /* Karty */
+        .card { border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--surface); }
+        .card-header-custom { background: var(--primary-light); border-bottom: 1px solid #d0dcff; border-radius: var(--radius) var(--radius) 0 0; padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 8px; }
+        .card-header-custom .card-title { font-size: 0.85rem; font-weight: 600; color: var(--primary); margin: 0; letter-spacing: 0.02em; text-transform: uppercase; }
+        .card-header-custom .bi { color: var(--primary); font-size: 1rem; }
+
+        /* Pole mzdy */
+        .salary-field { display: flex; align-items: center; gap: 8px; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        .salary-field:last-child { border-bottom: none; }
+        .salary-field:hover { background: #fafbff; }
+        .salary-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; min-width: 120px; }
+        .salary-input-wrap { flex: 1; position: relative; }
+        .salary-input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 0.5rem 2.8rem 0.5rem 0.85rem; font-family: 'DM Sans', sans-serif; font-size: 1.1rem; font-weight: 600; background: #fafbff; outline: none; transition: border-color 0.2s, box-shadow 0.2s; text-align: right; }
+        .salary-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); background: #fff; }
+        .salary-input.gross { color: var(--primary); }
+        .salary-input.net { color: var(--success); }
+        .currency-badge { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; font-weight: 600; color: var(--muted); pointer-events: none; }
+        .adj-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; color: var(--muted); transition: all 0.15s; flex-shrink: 0; user-select: none; }
+        .adj-btn:hover { background: var(--primary-light); color: var(--primary); border-color: #c0ccf0; }
+        .adj-btn:active { transform: scale(0.93); }
+
+        /* Nastavení */
+        .settings-body { padding: 1.1rem 1.25rem; }
+        .form-label-sm { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+        .form-control, .form-select { border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.875rem; color: var(--text); padding: 0.45rem 0.75rem; transition: border-color 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+        .counter-group { display: flex; align-items: center; gap: 8px; }
+        .counter-group .count-val { min-width: 28px; text-align: center; font-size: 1rem; font-weight: 700; }
+        .form-check-label { font-size: 0.85rem; cursor: pointer; }
+        .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+        .invalidity-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+        .inv-btn { border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); border-radius: 6px; padding: 4px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .inv-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        .inv-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        /* Tabulky */
+        .result-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .result-table thead th { background: #f8faff; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); }
+        .result-table tbody td { padding: 0.6rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .result-table tbody tr:last-child td { border-bottom: none; }
+        .result-table tbody tr:hover td { background: #fafbff; }
+        .result-table .row-label { color: var(--text); font-weight: 500; }
+        .result-table .row-value { text-align: right; font-weight: 600; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; }
+        .result-table .row-total td { background: var(--primary-light) !important; font-weight: 700; }
+        .result-table .row-total .row-label { color: var(--primary); }
+        .result-table .row-total .row-value { color: var(--primary); font-size: 1rem; }
+        .val-employee { color: var(--primary); }
+        .val-employer { color: var(--warning); }
+        .val-total { color: var(--text); }
+        .val-tax { color: var(--danger); }
+        .val-deduct { color: var(--success); }
+
+        /* Souhrnný pruh */
+        .summary-strip { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: #fff; border-radius: var(--radius); padding: 1.25rem 1.5rem; display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
+        .summary-item { flex: 1; min-width: 120px; }
+        .summary-item .s-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; margin-bottom: 3px; }
+        .summary-item .s-val { font-family: 'DM Sans', sans-serif; font-size: 1.35rem; font-weight: 700; line-height: 1; }
+        .s-val.net-color { color: #6ee7b7; }
+        .s-val.gross-color { color: #bfdbfe; }
+        .divider-v { width: 1px; background: rgba(255,255,255,0.2); height: 40px; flex-shrink: 0; }
+
+        /* Upozornění na pásmo */
+        .band-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+        .band-15 { background: #dbeafe; color: #1e40af; }
+        .band-23 { background: #fee2e2; color: #991b1b; }
+
+        /* Ostatní */
+        .section-gap { margin-bottom: 1.25rem; }
+        .info-text { font-size: 0.75rem; color: var(--muted); }
+        .calc-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 0.6rem 1.5rem; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; gap: 6px; }
+        .calc-btn:hover { background: var(--primary-dark); }
+        .calc-btn:active { transform: scale(0.97); }
+        .separator { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+        @media (max-width: 768px) { .summary-strip { gap: 1rem; } .divider-v { display: none; } .salary-label { min-width: 90px; font-size: 0.7rem; } }
+    </style>
+</head>
+<body>
+
+<div class="site-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h1><i class="bi bi-calculator me-2"></i>Výpočet mzdy 2026</h1>
+                <div class="subtitle">Mzdová kalkulačka hrubé a čisté mzdy · Aktuální sazby dle platné legislativy</div>
+            </div>
+            <span class="header-badge"><i class="bi bi-check-circle me-1"></i>Sazby platné pro rok 2026</span>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+
+    <!-- Souhrnný pruh -->
+    <div class="summary-strip section-gap">
+        <div class="summary-item">
+            <div class="s-label">Hrubá mzda</div>
+            <div class="s-val gross-color" id="sum-gross">—</div>
+        </div>
+        <div class="divider-v"></div>
+        <div class="summary-item">
+            <div class="s-label">Čistá mzda (výplata)</div>
+            <div class="s-val net-color" id="sum-net">—</div>
+        </div>
+        <div class="divider-v"></div>
+        <div class="summary-item">
+            <div class="s-label">Náklady zaměstnavatele</div>
+            <div class="s-val" id="sum-naklady" style="color:#fde68a;">—</div>
+        </div>
+        <div class="divider-v"></div>
+        <div class="summary-item">
+            <div class="s-label">Celkové odvody</div>
+            <div class="s-val" id="sum-burden" style="color:#fca5a5;">—</div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- LEVÝ SLOUPEC -->
+        <div class="col-lg-5">
+
+            <div class="card section-gap">
+                <div class="card-header-custom">
+                    <i class="bi bi-cash-stack"></i>
+                    <span class="card-title">Zadání mzdy</span>
+                </div>
+                <!-- Hrubá mzda -->
+                <div class="salary-field">
+                    <div class="salary-label">Hrubá mzda</div>
+                    <button class="adj-btn" id="gross-minus" title="−1 000 Kč"><i class="bi bi-dash"></i></button>
+                    <div class="salary-input-wrap">
+                        <input type="number" class="salary-input gross" id="gross" value="30000" min="0" step="100" />
+                        <span class="currency-badge">Kč</span>
+                    </div>
+                    <button class="adj-btn" id="gross-plus" title="+1 000 Kč"><i class="bi bi-plus"></i></button>
+                </div>
+                <!-- Čistá mzda -->
+                <div class="salary-field">
+                    <div class="salary-label">Čistá mzda</div>
+                    <button class="adj-btn" id="net-minus" title="−1 000 Kč"><i class="bi bi-dash"></i></button>
+                    <div class="salary-input-wrap">
+                        <input type="number" class="salary-input net" id="net" value="" min="0" step="100" placeholder="automaticky" />
+                        <span class="currency-badge">Kč</span>
+                    </div>
+                    <button class="adj-btn" id="net-plus" title="+1 000 Kč"><i class="bi bi-plus"></i></button>
+                </div>
+            </div>
+
+            <div class="card section-gap">
+                <div class="card-header-custom">
+                    <i class="bi bi-briefcase"></i>
+                    <span class="card-title">Nastavení zaměstnání</span>
+                </div>
+                <div class="settings-body">
+
+                    <div class="mb-3">
+                        <label class="form-label-sm">Typ pracovního vztahu</label>
+                        <select class="form-select form-select-sm" id="contract-type">
+                            <option value="employment">Pracovní poměr</option>
+                            <option value="dpc">Dohoda o pracovní činnosti (DPČ)</option>
+                            <option value="dpp">Dohoda o provedení práce (DPP)</option>
+                            <option value="small">Malý rozsah</option>
+                        </select>
+                    </div>
+
+                    <hr class="separator" />
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label-sm">Počet dětí</label>
+                            <div class="counter-group">
+                                <button class="adj-btn" id="children-minus"><i class="bi bi-dash"></i></button>
+                                <span class="count-val" id="children-val">0</span>
+                                <button class="adj-btn" id="children-plus"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label-sm">z toho ZTP/P <small style="font-size:0.65rem;color:var(--muted);">(2× bonus)</small></label>
+                            <div class="counter-group">
+                                <button class="adj-btn" id="ztp-minus"><i class="bi bi-dash"></i></button>
+                                <span class="count-val" id="ztp-val">0</span>
+                                <button class="adj-btn" id="ztp-plus"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="separator" />
+
+                    <div class="mb-3">
+                        <label class="form-label-sm">Slevy na dani</label>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" id="chk-employee" checked />
+                            <label class="form-check-label" for="chk-employee">Sleva na poplatníka (2 570 Kč/měs.)</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" id="chk-student" />
+                            <label class="form-check-label" for="chk-student">Sleva na studenta (335 Kč/měs.)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chk-pension-saving" />
+                            <label class="form-check-label" for="chk-pension-saving">Důchodové spoření (3. pilíř)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-sm">Stupeň invalidity</label>
+                        <div class="invalidity-btns">
+                            <button class="inv-btn active" data-inv="0">Žádný</button>
+                            <button class="inv-btn" data-inv="1">1. stupeň<br><small>210 Kč</small></button>
+                            <button class="inv-btn" data-inv="2">2. stupeň<br><small>210 Kč</small></button>
+                            <button class="inv-btn" data-inv="3">3. stupeň<br><small>420 Kč</small></button>
+                            <button class="inv-btn" data-inv="4">ZTP/P<br><small>1 345 Kč</small></button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button class="calc-btn" id="calc-btn">
+                            <i class="bi bi-arrow-clockwise"></i> Přepočítat
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sazby 2026 -->
+            <div class="card section-gap">
+                <div class="card-header-custom">
+                    <i class="bi bi-info-circle"></i>
+                    <span class="card-title">Sazby platné v roce 2026</span>
+                </div>
+                <div class="settings-body" style="font-size:0.8rem; color:var(--muted); line-height:1.8;">
+                    <strong style="color:var(--text);">Pojistné zaměstnanec:</strong><br>
+                    &bull; Zdravotní pojištění: <strong style="color:var(--text);">4,5 %</strong> ze skutečné hrubé mzdy<br>
+                    &bull; Sociální pojištění: <strong style="color:var(--text);">7,1 %</strong> (vč. 0,6 % nemocenské)<br>
+                    <hr class="separator" style="margin:0.5rem 0;">
+                    <strong style="color:var(--text);">Pojistné zaměstnavatel:</strong><br>
+                    &bull; Zdravotní pojištění: <strong style="color:var(--text);">9 %</strong><br>
+                    &bull; Sociální pojištění: <strong style="color:var(--text);">24,8 %</strong><br>
+                    <hr class="separator" style="margin:0.5rem 0;">
+                    <strong style="color:var(--warning);">⚠ Minimální vyměřovací základ ZP:</strong><br>
+                    Minimální mzda = <strong style="color:var(--text);">22 400 Kč</strong> (2026)<br>
+                    Minimální celkové ZP = <strong style="color:var(--text);">3 024 Kč/měs.</strong> (13,5 %)<br>
+                    Pokud je hrubá mzda nižší než 22 400 Kč, zaměstnanec odvede 4,5 % ze skutečné mzdy a <strong style="color:var(--text);">zaměstnavatel uhradí dopočet do minima.</strong><br>
+                    <hr class="separator" style="margin:0.5rem 0;">
+                    <strong style="color:var(--text);">Daň z příjmů (ze hrubé mzdy):</strong><br>
+                    &bull; 15 % – do 146 901 Kč/měs. (1 762 812 Kč/rok)<br>
+                    &bull; 23 % – nad 146 901 Kč/měs.<br>
+                    <hr class="separator" style="margin:0.5rem 0;">
+                    <strong style="color:var(--text);">Sleva na poplatníka:</strong> 2 570 Kč/měs. (30 840 Kč/rok)<br>
+                    <strong style="color:var(--text);">Sleva na studenta:</strong> 335 Kč/měs.<br>
+                    <strong style="color:var(--text);">Daňové zvýhodnění na děti:</strong><br>
+                    &bull; 1. dítě: 1 267 Kč/měs.<br>
+                    &bull; 2. dítě: 1 860 Kč/měs.<br>
+                    &bull; 3. a každé další: 2 320 Kč/měs.<br>
+                    &bull; Dítě s průkazem ZTP/P: <strong style="color:var(--text);">dvojnásobná částka</strong><br>
+                    <hr class="separator" style="margin:0.5rem 0;">
+                    <em>Superhrubá mzda zrušena od 1. 1. 2021. Daň se počítá přímo z hrubé mzdy.</em>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PRAVÝ SLOUPEC -->
+        <div class="col-lg-7">
+
+            <!-- Pojistné -->
+            <div class="card section-gap">
+                <div class="card-header-custom">
+                    <i class="bi bi-shield-check"></i>
+                    <span class="card-title">Sociální a zdravotní pojištění</span>
+                </div>
+                <table class="result-table">
+                    <thead>
+                    <tr>
+                        <th>Druh pojistného</th>
+                        <th class="text-end">Zaměstnanec</th>
+                        <th class="text-end">Zaměstnavatel</th>
+                        <th class="text-end">Celkem</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-hospital text-danger me-1"></i>Zdravotní pojištění (4,5 % / 9 %)</td>
+                        <td class="row-value val-employee" id="ins-health-emp">—</td>
+                        <td class="row-value val-employer" id="ins-health-er">—</td>
+                        <td class="row-value val-total" id="ins-health-tot">—</td>
+                    </tr>
+                    <tr id="row-dopocet" style="display:none;">
+                        <td class="row-label" style="color:var(--warning);padding-left:2rem;font-size:0.8rem;"><i class="bi bi-exclamation-triangle me-1"></i>z toho dopočet do min. základu ZP (hradí zaměstnavatel)</td>
+                        <td class="row-value" style="color:var(--warning);font-size:0.8rem;">—</td>
+                        <td class="row-value" id="ins-dopocet" style="color:var(--warning);font-size:0.8rem;">—</td>
+                        <td class="row-value" style="color:var(--warning);font-size:0.8rem;" id="ins-dopocet-tot">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-people text-primary me-1"></i>Sociální pojištění (7,1 % / 24,8 %)</td>
+                        <td class="row-value val-employee" id="ins-social-emp">—</td>
+                        <td class="row-value val-employer" id="ins-social-er">—</td>
+                        <td class="row-value val-total" id="ins-social-tot">—</td>
+                    </tr>
+                    <tr class="row-total">
+                        <td class="row-label">Celkem pojistné</td>
+                        <td class="row-value" id="ins-total-emp">—</td>
+                        <td class="row-value" id="ins-total-er">—</td>
+                        <td class="row-value" id="ins-total-all">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Výpočet daně -->
+            <div class="card section-gap">
+                <div class="card-header-custom">
+                    <i class="bi bi-receipt"></i>
+                    <span class="card-title">Výpočet zálohy na daň z příjmů</span>
+                </div>
+                <table class="result-table">
+                    <thead>
+                    <tr>
+                        <th>Položka</th>
+                        <th class="text-end">Částka (Kč)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="row-label">Základ daně (hrubá mzda)</td>
+                        <td class="row-value" id="tax-base">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">
+                            Záloha daně
+                            <span class="band-badge band-15" id="tax-band-badge">15 %</span>
+                        </td>
+                        <td class="row-value val-tax" id="tax-advance">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-person-check me-1 text-success"></i>Sleva na poplatníka</td>
+                        <td class="row-value val-deduct" id="tax-emp-discount">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-mortarboard me-1 text-success"></i>Sleva na studenta</td>
+                        <td class="row-value val-deduct" id="tax-student-discount">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-heart-pulse me-1 text-success"></i>Sleva na invaliditu</td>
+                        <td class="row-value val-deduct" id="tax-disability-discount">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">Slevy celkem</td>
+                        <td class="row-value val-deduct" id="tax-discounts-total">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">Záloha po slevách</td>
+                        <td class="row-value val-tax" id="tax-after-discounts">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label"><i class="bi bi-people-fill me-1 text-success"></i>Daňové zvýhodnění na děti</td>
+                        <td class="row-value val-deduct" id="tax-child-bonus">—</td>
+                    </tr>
+                    <tr class="row-total">
+                        <td class="row-label">Záloha po zvýhodnění / daňový bonus</td>
+                        <td class="row-value" id="tax-final">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Celkový přehled -->
+            <div class="card">
+                <div class="card-header-custom">
+                    <i class="bi bi-wallet2"></i>
+                    <span class="card-title">Celkový přehled mzdy</span>
+                </div>
+                <table class="result-table">
+                    <thead>
+                    <tr>
+                        <th>Složka mzdy</th>
+                        <th class="text-end">Částka (Kč)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="row-label">Hrubá mzda</td>
+                        <td class="row-value" id="res-gross">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">− Zdravotní pojištění zaměstnance (4,5 % ze skutečné hrubé)</td>
+                        <td class="row-value val-tax" id="res-hi-emp">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">− Sociální pojištění zaměstnance (7,1 %)</td>
+                        <td class="row-value val-tax" id="res-si-emp">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label">− Záloha na daň z příjmu</td>
+                        <td class="row-value val-tax" id="res-tax">—</td>
+                    </tr>
+                    <tr class="row-total">
+                        <td class="row-label"><i class="bi bi-check2-circle me-1"></i>Čistá mzda (výplata)</td>
+                        <td class="row-value" id="res-net" style="color:var(--success);font-size:1.1rem;">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label" style="color:var(--muted);">+ Odvody zaměstnavatele (33,8 % hrubé)</td>
+                        <td class="row-value" id="res-er-contrib" style="color:var(--muted);">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label" style="color:var(--muted);">= Celkové náklady zaměstnavatele</td>
+                        <td class="row-value" id="res-naklady" style="color:var(--warning);font-weight:700;">—</td>
+                    </tr>
+                    <tr>
+                        <td class="row-label" style="color:var(--muted);">Efektivní daňové zatížení zaměstnance</td>
+                        <td class="row-value" id="res-taxrate" style="color:var(--danger);">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <p class="text-center info-text mt-4">
+        <i class="bi bi-info-circle me-1"></i>
+        Kalkulačka odpovídá české legislativě platné pro rok 2026. Superhrubá mzda zrušena od 1. 1. 2021 – daň se počítá z hrubé mzdy.
+        Minimální vyměřovací základ zdravotního pojištění zaměstnance = minimální mzda 22 400 Kč → min. pojistné 3 024 Kč/měs. (zaměstnanec hradí 4,5 % ze skutečné hrubé mzdy, dopočet do minima jde k tíži zaměstnavatele).
+        Progresivní sazba 23 % se uplatní u příjmů nad 146 901 Kč/měsíc.
+        Výsledky mají pouze informativní charakter – vždy se poraďte s certifikovaným účetním nebo mzdovou účetní.
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(function () {
+
+        /* ══════════════════════════════════════════════
+           SAZBY 2026 – dle platné české legislativy
+        ══════════════════════════════════════════════ */
+        const S = {
+            // Pojistné zaměstnanec
+            zdravotni_zam:   0.045,   // 4,5 %
+            socialni_zam:    0.071,   // 7,1 % (důchodové 6,5 % + nemocenské 0,6 %)
+            // Pojistné zaměstnavatel
+            zdravotni_zamav: 0.090,   // 9 %
+            socialni_zamav:  0.248,   // 24,8 %
+            // Minimální vyměřovací základ ZP = minimální mzda 2026
+            min_mzda:        22400,   // od 1.1.2026
+            min_zdravotni:   3024,    // 13,5 % z 22 400 Kč (celé pojistné zaměstnanec+zaměstnavatel)
+
+            // Daň z příjmů – progresivní (ze HRUBÉ mzdy, superhrubá zrušena od 2021)
+            dan_15:     0.15,
+            dan_23:     0.23,
+            // Měsíční hranice pro 23% pásmo = 1 762 812 / 12
+            hranice_23: 146901,
+
+            // Slevy na dani (měsíční)
+            sleva_poplatnik: 2570,    // 30 840 Kč ročně
+            sleva_student:    335,    // 4 020 Kč ročně
+
+            // Slevy na invaliditu (měsíční)
+            sleva_invalidita: [0, 210, 210, 420, 1345],
+
+            // Daňové zvýhodnění na děti (měsíční) – stejné pro 2025 i 2026
+            bonus_dite: [0, 1267, 1860, 2320],  // 0=žádné, 1.dítě, 2.dítě, 3.+dítě
+        };
+
+        let pocetDeti  = 0;
+        let pocetZtp   = 0;  // děti s průkazem ZTP/P (mají nárok na dvojnásobný bonus)
+        let invalidita = 0;
+        let posledniPole = 'gross';
+
+        /* ── Formátování ── */
+        function fmt(n) {
+            if (n === null || isNaN(n)) return '—';
+            return Math.round(n).toLocaleString('cs-CZ') + '\u00a0Kč';
+        }
+        function fmtMinus(n) {
+            if (!n || isNaN(n)) return '—';
+            return '−\u00a0' + Math.round(n).toLocaleString('cs-CZ') + '\u00a0Kč';
+        }
+
+        /* ══════════════════════════════════════════════
+           VÝPOČET Z HRUBÉ MZDY (aktuální logika 2026)
+        ══════════════════════════════════════════════ */
+        function vypocet(hruba) {
+            // 1) Pojistné – ZDRAVOTNÍ s kontrolou minimálního vyměřovacího základu
+            // Minimální vyměřovací základ = minimální mzda = 22 400 Kč (2026)
+            // Celkové minimální pojistné = 13,5 % z 22 400 = 3 024 Kč
+            // Zaměstnanec platí 4,5 %, zaměstnavatel 9 % → podíl zaměstnance = 1/3 z celku
+            const zdravZamSkutecne  = Math.round(hruba * S.zdravotni_zam);
+            const zdravZamavSkutecne= Math.round(hruba * S.zdravotni_zamav);
+            const zdravCelkemSkutecne = zdravZamSkutecne + zdravZamavSkutecne;
+            // Pokud je hrubá nižší než minimální mzda, celkové pojistné musí být min. 3 024 Kč
+            // Zaměstnanec platí stále jen 4,5 % ze SKUTEČNÉ hrubé, rozdíl doplácí zaměstnavatel
+            const zdravCelkemMin = S.min_zdravotni; // 3 024 Kč
+            const zdravDopocet = Math.max(0, zdravCelkemMin - zdravCelkemSkutecne); // doplatek zaměstnavatele
+            const zdravZam   = zdravZamSkutecne;                    // zaměstnanec platí vždy 4,5 % ze skutečné hrubé
+            const zdravZamav = zdravZamavSkutecne + zdravDopocet;  // zaměstnavatel hradí dopočet do minima
+
+            // SOCIÁLNÍ pojištění – bez minimálního vyměřovacího základu u zaměstnanců
+            const socialZam  = Math.round(hruba * S.socialni_zam);
+            const socialZamav= Math.round(hruba * S.socialni_zamav);
+
+            // 2) Základ daně = hrubá mzda (superhrubá zrušena od 2021!)
+            //    Základ se zaokrouhluje na celé stokoruny nahoru
+            const zakladDane = Math.ceil(hruba / 100) * 100;
+
+            // 3) Záloha daně – progresivní sazba
+            let zalohaDane;
+            let pouzitaSazba;
+            if (hruba <= S.hranice_23) {
+                zalohaDane  = Math.round(zakladDane * S.dan_15);
+                pouzitaSazba = '15 %';
+            } else {
+                // Část do hranice × 15 % + přesahující část × 23 %
+                const base15 = Math.ceil(S.hranice_23 / 100) * 100;
+                const base23 = zakladDane - base15;
+                zalohaDane  = Math.round(base15 * S.dan_15 + base23 * S.dan_23);
+                pouzitaSazba = '15 % / 23 %';
+            }
+
+            // 4) Slevy
+            const slevaPoplatnik = $('#chk-employee').is(':checked') ? S.sleva_poplatnik : 0;
+            const slevaStudent   = $('#chk-student').is(':checked')  ? S.sleva_student   : 0;
+            const slevaInvalid   = S.sleva_invalidita[invalidita] || 0;
+            const slevyCelkem    = slevaPoplatnik + slevaStudent + slevaInvalid;
+
+            const zalohaPoSlevach = Math.max(0, zalohaDane - slevyCelkem);
+
+            // 5) Daňové zvýhodnění na děti
+            // Pořadí dětí: nejprve řadíme běžné děti, pak ZTP/P (každé ZTP/P = dvojnásobný bonus)
+            // ZTP/P děti jsou podmnožinou pocetDeti
+            let bonusDeti = 0;
+            for (let i = 0; i < pocetDeti; i++) {
+                const zaklad = i === 0 ? S.bonus_dite[1] : i === 1 ? S.bonus_dite[2] : S.bonus_dite[3];
+                bonusDeti += zaklad;
+            }
+            // ZTP/P děti mají nárok na DVOJNÁSOBNÝ bonus – přičítáme druhou polovinu navíc
+            // (první polovina je již zahrnuta výše v pocetDeti)
+            for (let i = 0; i < pocetZtp; i++) {
+                const idx = pocetDeti - pocetZtp + i; // pořadové číslo ZTP dítěte v celkovém počtu
+                const zaklad = idx === 0 ? S.bonus_dite[1] : idx === 1 ? S.bonus_dite[2] : S.bonus_dite[3];
+                bonusDeti += zaklad; // přidáme druhou polovinu = celkem 2× bonus
+            }
+
+            // 6) Záloha po zvýhodnění (může být záporná = daňový bonus)
+            const zalohaFinalni = zalohaPoSlevach - bonusDeti;
+            const danKUhrade    = Math.max(0, zalohaFinalni);
+            const danovyBonus   = Math.max(0, -zalohaFinalni);
+
+            // 7) Čistá mzda
+            const cistaMzda = hruba - zdravZam - socialZam - danKUhrade + danovyBonus;
+
+            // 8) Náklady zaměstnavatele
+            const nakladyZamav = hruba + zdravZamav + socialZamav;
+
+            return {
+                hruba, cistaMzda, nakladyZamav,
+                zdravZam, socialZam, zdravZamav, socialZamav, zdravDopocet,
+                pojZamCelkem:   zdravZam + socialZam,
+                pojZamavCelkem: zdravZamav + socialZamav,
+                pojCelkem:      zdravZam + socialZam + zdravZamav + socialZamav,
+                zakladDane, zalohaDane, pouzitaSazba,
+                slevaPoplatnik, slevaStudent, slevaInvalid, slevyCelkem,
+                zalohaPoSlevach, bonusDeti, zalohaFinalni,
+                danKUhrade, danovyBonus,
+                odvodyCelkem: zdravZam + socialZam + danKUhrade,
+                efZatizeni: hruba > 0 ? ((hruba - cistaMzda) / hruba * 100).toFixed(1) : '0.0',
+            };
+        }
+
+        /* ── Hledání hrubé z čisté (binární vyhledávání) ── */
+        function hrubaZCiste(cilCista) {
+            let lo = cilCista * 0.8, hi = cilCista * 2, mid;
+            for (let i = 0; i < 80; i++) {
+                mid = (lo + hi) / 2;
+                if (vypocet(mid).cistaMzda < cilCista) lo = mid; else hi = mid;
+            }
+            return Math.round(mid);
+        }
+
+        /* ── Aktualizace UI ── */
+        function aktualizujUI(v) {
+            if (posledniPole !== 'gross') $('#gross').val(Math.round(v.hruba));
+            if (posledniPole !== 'net')   $('#net').val(Math.round(v.cistaMzda));
+
+            // Souhrnný pruh
+            $('#sum-gross').text(fmt(v.hruba));
+            $('#sum-net').text(fmt(v.cistaMzda));
+            $('#sum-naklady').text(fmt(v.nakladyZamav));
+            $('#sum-burden').text(fmt(v.odvodyCelkem) + ' (' + v.efZatizeni + '%)');
+
+            // Pojistné
+            $('#ins-health-emp').text(fmt(v.zdravZam));
+            $('#ins-health-er').text(fmt(v.zdravZamav));
+            $('#ins-health-tot').text(fmt(v.zdravZam + v.zdravZamav));
+            // Dopočet do minima ZP
+            if (v.zdravDopocet > 0) {
+                $('#row-dopocet').show();
+                $('#ins-dopocet').text(fmt(v.zdravDopocet));
+                $('#ins-dopocet-tot').text(fmt(v.zdravDopocet));
+            } else {
+                $('#row-dopocet').hide();
+            }
+            $('#ins-social-emp').text(fmt(v.socialZam));
+            $('#ins-social-er').text(fmt(v.socialZamav));
+            $('#ins-social-tot').text(fmt(v.socialZam + v.socialZamav));
+            $('#ins-total-emp').text(fmt(v.pojZamCelkem));
+            $('#ins-total-er').text(fmt(v.pojZamavCelkem));
+            $('#ins-total-all').text(fmt(v.pojCelkem));
+
+            // Daň
+            $('#tax-base').text(fmt(v.zakladDane));
+            $('#tax-advance').text(fmt(v.zalohaDane));
+            const badgeEl = $('#tax-band-badge');
+            if (v.hruba > S.hranice_23) {
+                badgeEl.text('15 % / 23 %').removeClass('band-15').addClass('band-23');
+            } else {
+                badgeEl.text('15 %').removeClass('band-23').addClass('band-15');
+            }
+            $('#tax-emp-discount').text(v.slevaPoplatnik > 0 ? fmtMinus(v.slevaPoplatnik) : '—');
+            $('#tax-student-discount').text(v.slevaStudent > 0 ? fmtMinus(v.slevaStudent) : '—');
+            $('#tax-disability-discount').text(v.slevaInvalid > 0 ? fmtMinus(v.slevaInvalid) : '—');
+            $('#tax-discounts-total').text(v.slevyCelkem > 0 ? fmtMinus(v.slevyCelkem) : '—');
+            $('#tax-after-discounts').text(fmt(v.zalohaPoSlevach));
+            $('#tax-child-bonus').text(v.bonusDeti > 0
+                ? fmtMinus(v.bonusDeti) + (pocetZtp > 0 ? '\u00a0(vč. ZTP/P ×2)' : '')
+                : '—');
+
+            const elFin = $('#tax-final');
+            if (v.zalohaFinalni < 0) {
+                elFin.text('Daňový bonus: +\u00a0' + fmt(v.danovyBonus)).css('color', 'var(--success)');
+            } else {
+                elFin.text(fmt(v.zalohaFinalni)).css('color', 'var(--danger)');
+            }
+
+            // Celkový přehled
+            $('#res-gross').text(fmt(v.hruba));
+            $('#res-hi-emp').text(fmtMinus(v.zdravZam));
+            $('#res-si-emp').text(fmtMinus(v.socialZam));
+            if (v.danKUhrade > 0) {
+                $('#res-tax').text(fmtMinus(v.danKUhrade));
+            } else if (v.danovyBonus > 0) {
+                $('#res-tax').text('Bonus: +\u00a0' + fmt(v.danovyBonus));
+            } else {
+                $('#res-tax').text('0\u00a0Kč');
+            }
+            $('#res-net').text(fmt(v.cistaMzda));
+            $('#res-er-contrib').text('+\u00a0' + fmt(v.pojZamavCelkem));
+            $('#res-naklady').text(fmt(v.nakladyZamav));
+            $('#res-taxrate').text(v.efZatizeni + '\u00a0%');
+        }
+
+        /* ── Hlavní výpočet ── */
+        function vypocitej() {
+            let hruba;
+            if (posledniPole === 'gross') {
+                hruba = parseFloat($('#gross').val()) || 0;
+            } else {
+                hruba = hrubaZCiste(parseFloat($('#net').val()) || 0);
+            }
+            aktualizujUI(vypocet(hruba));
+        }
+
+        /* ── Události ── */
+        $('#gross').on('input', () => { posledniPole = 'gross'; vypocitej(); });
+        $('#net').on('input',   () => { posledniPole = 'net';   vypocitej(); });
+
+        function upravPole(id, delta, pole) {
+            let v = Math.max(0, (parseFloat($('#'+id).val()) || 0) + delta);
+            $('#'+id).val(v); posledniPole = pole; vypocitej();
+        }
+
+        $('#gross-minus').on('click', () => upravPole('gross', -1000, 'gross'));
+        $('#gross-plus').on('click',  () => upravPole('gross',  1000, 'gross'));
+        $('#net-minus').on('click',   () => upravPole('net',   -1000, 'net'));
+        $('#net-plus').on('click',    () => upravPole('net',    1000, 'net'));
+
+        $('#children-minus').on('click', () => {
+            pocetDeti = Math.max(0, pocetDeti - 1);
+            pocetZtp  = Math.min(pocetZtp, pocetDeti); // ZTP nesmí přesáhnout celkový počet
+            $('#children-val').text(pocetDeti);
+            $('#ztp-val').text(pocetZtp);
+            vypocitej();
+        });
+        $('#children-plus').on('click', () => {
+            pocetDeti = Math.min(10, pocetDeti + 1);
+            $('#children-val').text(pocetDeti);
+            vypocitej();
+        });
+        $('#ztp-minus').on('click', () => {
+            pocetZtp = Math.max(0, pocetZtp - 1);
+            $('#ztp-val').text(pocetZtp);
+            vypocitej();
+        });
+        $('#ztp-plus').on('click', () => {
+            pocetZtp = Math.min(pocetDeti, pocetZtp + 1); // max = celkový počet dětí
+            $('#ztp-val').text(pocetZtp);
+            vypocitej();
+        });
+
+        $('.inv-btn').on('click', function () {
+            $('.inv-btn').removeClass('active'); $(this).addClass('active');
+            invalidita = parseInt($(this).data('inv')); vypocitej();
+        });
+
+        $('#chk-employee, #chk-student, #chk-pension-saving, #contract-type').on('change', vypocitej);
+        $('#calc-btn').on('click', vypocitej);
+
+        vypocitej();
+    });
+</script>
+</body>
+</html>
