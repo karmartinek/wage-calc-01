@@ -112,6 +112,15 @@
         .ad-horizontal-mobile { display: none; }
         @media (max-width: 989px) { .ad-horizontal-mobile { display: block; } }
 
+        /* Spodní bannery – vždy viditelné, vedle sebe nad 1200px */
+        .ad-bottom-wrap {
+            display: flex;
+            gap: 1rem;
+        }
+        .ad-bottom-item { flex: 1; min-width: 0; }
+        .ad-bottom-second { display: none; }
+        @media (min-width: 1200px) { .ad-bottom-second { display: block; } }
+
         @media (max-width: 768px) { .summary-strip { gap: 1rem; } .divider-v { display: none; } .salary-label { min-width: 90px; font-size: 0.7rem; } }
 
         /* Reklamní sidebar – mimo Bootstrap container, napravo */
@@ -516,18 +525,32 @@
 
         </div>
 
-        <!-- Horizontální banner – zobrazí se pouze na úzkých obrazovkách (< 990px) -->
-        <div class="ad-horizontal-mobile mt-4">
-            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-            <!-- Responsibilni -->
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-9630498352941574"
-                 data-ad-slot="9368592374"
-                 data-ad-format="auto"></ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+        <!-- Spodní reklamní bannery – vždy viditelné, nad 1200px se zobrazí dva vedle sebe -->
+        <div class="ad-bottom-wrap mt-4">
+            <div class="ad-bottom-item">
+                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                <!-- Responsibilni -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-9630498352941574"
+                     data-ad-slot="9368592374"
+                     data-ad-format="auto"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            <div class="ad-bottom-item ad-bottom-second">
+                <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+                <!-- Responsibilni -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-9630498352941574"
+                     data-ad-slot="9368592374"
+                     data-ad-format="auto"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
         </div>
 
         <p class="text-center info-text mt-4">
