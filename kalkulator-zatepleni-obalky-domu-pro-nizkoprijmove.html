@@ -102,7 +102,7 @@
                             </tbody>
                             <tfoot class="table-light">
                             <tr>
-                                <td colspan="3" class="fw-bold">Celková cena zateplení</td>
+                                <td colspan="3" class="fw-bold">Celková dotace na zateplení</td>
                                 <td class="text-end fw-bold fs-5" id="celkovaCena">250 000 Kč</td>
                             </tr>
                             </tfoot>
@@ -117,7 +117,14 @@
             <div class="card">
                 <div class="card-header bg-success text-white fw-semibold">💰 Dotace</div>
                 <div class="card-body">
-                    <div class="row g-3 align-items-end">
+                    <div class="row g-3 align-items-end mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Celková cena projektu (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="celkovaCenaProjektu" class="form-control" value="560000" min="0" step="10000">
+                                <span class="input-group-text">Kč</span>
+                            </div>
+                        </div>
                         <div class="col-sm-6">
                             <label class="form-label">Maximální výše dotace (Kč)</label>
                             <div class="input-group">
@@ -125,10 +132,29 @@
                                 <span class="input-group-text">Kč</span>
                             </div>
                         </div>
-                        <div class="col-sm-6">
-                            <div class="result-box green">
-                                <div class="result-label">Přiznaná dotace (min z max. dotace a celk. ceny)</div>
-                                <div class="result-value positive" id="sumaDotace">250 000 Kč</div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-sm-4">
+                            <label class="form-label mb-1" style="font-size:.82rem;color:#198754;font-weight:600;">Přiznaná dotace (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="sumaDotace" class="form-control fw-bold text-success" value="250000" min="0" step="1000">
+                                <span class="input-group-text">Kč</span>
+                            </div>
+                            <small class="text-muted">Auto: min(max. dotace, celk. cena)</small>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label mb-1" style="font-size:.82rem;color:#fd7e14;font-weight:600;">Výše bezúročného úvěru (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="bezurocnyUver" class="form-control fw-bold" value="310000" min="0" step="1000">
+                                <span class="input-group-text">Kč</span>
+                            </div>
+                            <small class="text-muted">Auto: celk. cena − dotace</small>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label mb-1" style="font-size:.82rem;color:#6c757d;">Výše k doplacení (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="vyseKDoplaceni" class="form-control fw-bold" value="0" min="0" step="1000">
+                                <span class="input-group-text">Kč</span>
                             </div>
                         </div>
                     </div>
@@ -210,15 +236,14 @@
 
 <script>
     const fmt = v => Math.round(v).toLocaleString('cs-CZ') + ' Kč';
-    const fmtN = v => {
-        const s = Math.round(v).toLocaleString('cs-CZ') + ' Kč';
-        return v >= 0 ? '+' + s : s;
-    };
 
-    function calc() {
-        const topeni   = +document.getElementById('topeniRocne').value || 0;
-        const usporaPct= +document.getElementById('usporaPct').value   || 0;
-        const maxDot   = +document.getElementById('maxDotace').value   || 0;
+    // IDs of "parent" inputs that trigger full auto-recalc of dotace + bezurocny
+    const parentIds = ['topeniRocne','usporaPct','maxDotace','celkovaCenaProjektu',
+        'cenaSteny','plohaSteny','cenaStrop','plohaStrop','cenaOkna','plohaOkna'];
+
+    function calcDownstream() {
+        const topeni    = +document.getElementById('topeniRocne').value || 0;
+        const usporaPct = +document.getElementById('usporaPct').value   || 0;
 
         const cenaS = +document.getElementById('cenaSteny').value || 0;
         const ploS  = +document.getElementById('plohaSteny').value || 0;
@@ -227,13 +252,16 @@
         const cenaO = +document.getElementById('cenaOkna').value  || 0;
         const ploO  = +document.getElementById('plohaOkna').value || 0;
 
-        const sumaS = cenaS * ploS;
-        const sumaT = cenaT * ploT;
-        const sumaO = cenaO * ploO;
+        const sumaS   = cenaS * ploS;
+        const sumaT   = cenaT * ploT;
+        const sumaO   = cenaO * ploO;
         const celkova = sumaS + sumaT + sumaO;
 
-        const dotace = Math.min(maxDot, celkova);
-        const cenaPoOd = celkova - dotace;
+        const celkovaCenaPrj = +document.getElementById('celkovaCenaProjektu').value || 0;
+        const dotace   = +document.getElementById('sumaDotace').value   || 0;
+        const bezurocny = +document.getElementById('bezurocnyUver').value || 0;
+        const vyseKDop = Math.max(0, celkovaCenaPrj - dotace - bezurocny);
+        document.getElementById('vyseKDoplaceni').value = Math.round(vyseKDop);
 
         const rocniUspora = topeni * (usporaPct / 100);
         const mesUspora   = rocniUspora / 12;
@@ -245,18 +273,15 @@
         const rozdil10  = mesUspora - splatka10;
         const rozdil15  = mesUspora - splatka15;
 
-        // fill table sums
-        document.getElementById('sumaSteny').textContent = fmt(sumaS);
-        document.getElementById('sumaStrop').textContent = fmt(sumaT);
-        document.getElementById('sumaOkna').textContent  = fmt(sumaO);
+        document.getElementById('sumaSteny').textContent   = fmt(sumaS);
+        document.getElementById('sumaStrop').textContent   = fmt(sumaT);
+        document.getElementById('sumaOkna').textContent    = fmt(sumaO);
         document.getElementById('celkovaCena').textContent = fmt(celkova);
-        document.getElementById('sumaDotace').textContent  = fmt(dotace);
 
-        // fill results
-        document.getElementById('mesPlNyni').textContent    = fmt(mesNyni);
-        document.getElementById('mesPlPo').textContent      = fmt(mesPo);
-        document.getElementById('rocniUspora').textContent  = fmt(rocniUspora);
-        document.getElementById('cenaPoOdecteni').textContent = fmt(cenaPoOd);
+        document.getElementById('mesPlNyni').textContent      = fmt(mesNyni);
+        document.getElementById('mesPlPo').textContent        = fmt(mesPo);
+        document.getElementById('rocniUspora').textContent    = fmt(rocniUspora);
+        document.getElementById('cenaPoOdecteni').textContent = fmt(bezurocny);
 
         document.getElementById('splatka10').textContent = fmt(splatka10);
         document.getElementById('splatka15').textContent = fmt(splatka15);
@@ -271,19 +296,53 @@
         r15el.textContent = fmt(Math.abs(rozdil15));
         r15el.className = 'fw-bold ' + (rozdil15 >= 0 ? 'text-success' : 'text-danger');
 
-        const badge = (v) => v >= 0
+        const badge = v => v >= 0
             ? '<span class="badge bg-success">✔ Úspora > splátka</span>'
             : '<span class="badge bg-danger">✖ Splátka > úspora</span>';
         document.getElementById('stav10').innerHTML = badge(rozdil10);
         document.getElementById('stav15').innerHTML = badge(rozdil15);
     }
 
-    // attach listeners to all inputs
-    document.querySelectorAll('input[type=number]').forEach(el => {
-        el.addEventListener('input', calc);
+    function calcAll() {
+        const maxDot        = +document.getElementById('maxDotace').value           || 0;
+        const celkovaCenaPrj = +document.getElementById('celkovaCenaProjektu').value || 0;
+        const cenaS = +document.getElementById('cenaSteny').value || 0;
+        const ploS  = +document.getElementById('plohaSteny').value || 0;
+        const cenaT = +document.getElementById('cenaStrop').value || 0;
+        const ploT  = +document.getElementById('plohaStrop').value || 0;
+        const cenaO = +document.getElementById('cenaOkna').value  || 0;
+        const ploO  = +document.getElementById('plohaOkna').value || 0;
+        const celkova = cenaS*ploS + cenaT*ploT + cenaO*ploO;
+
+        const base     = celkovaCenaPrj || celkova;
+        const dotace   = Math.min(maxDot, base);
+        const bezurocny = base - dotace;
+
+        document.getElementById('sumaDotace').value   = Math.round(dotace);
+        document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
+        calcDownstream();
+    }
+
+    // Parent inputs → full auto recalc
+    parentIds.forEach(id => {
+        document.getElementById(id).addEventListener('input', calcAll);
     });
 
-    calc();
+    // Přiznaná dotace edited manually → update bezurocny, recalc downstream
+    document.getElementById('sumaDotace').addEventListener('input', () => {
+        const celkovaCenaPrj = +document.getElementById('celkovaCenaProjektu').value || 0;
+        const dotace = +document.getElementById('sumaDotace').value || 0;
+        document.getElementById('bezurocnyUver').value = Math.round(Math.max(0, celkovaCenaPrj - dotace));
+        calcDownstream();
+    });
+
+    // Bezúročný úvěr edited manually → update only Výše k doplacení, keep dotace fixed
+    document.getElementById('bezurocnyUver').addEventListener('input', calcDownstream);
+
+    // Výše k doplacení → jen downstream
+    document.getElementById('vyseKDoplaceni').addEventListener('input', calcDownstream);
+
+    calcAll();
 </script>
 </body>
 </html>
