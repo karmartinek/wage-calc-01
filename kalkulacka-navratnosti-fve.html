@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačka návratnosti FVE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        body { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); min-height: 100vh; }
+        .card { border: none; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+        .card-header { border-radius: 16px 16px 0 0 !important; }
+        .result-box { background: linear-gradient(135deg, #1a472a, #2d6a4f); border-radius: 12px; }
+        .result-box.warn { background: linear-gradient(135deg, #7a3c00, #c05200); }
+        .stat-card { background: rgba(255,255,255,.07); border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
+        .payback-badge { font-size: 2.5rem; font-weight: 700; line-height: 1; }
+        input[type=range] { accent-color: #f6c23e; }
+        .section-label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
+    </style>
+</head>
+<body class="text-white">
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold fs-2"><i class="bi bi-sun-fill text-warning me-2"></i>Kalkulačka návratnosti FVE</h1>
+        <p class="text-white-50">Fotovoltaická elektrárna – rychlý výpočet návratnosti investice</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- VSTUP -->
+        <div class="col-lg-5">
+            <div class="card bg-dark text-white h-100">
+                <div class="card-header bg-warning text-dark fw-bold py-3">
+                    <i class="bi bi-sliders me-2"></i>Vstupní parametry
+                </div>
+                <div class="card-body p-4">
+
+                    <p class="section-label">Instalace</p>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Výkon FVE <span class="text-warning fw-bold" id="lbl-vykonfve">8 kWp</span>
+                        </label>
+                        <input type="range" class="form-range" id="vykonfve" min="2" max="50" step="0.5" value="8">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Cena instalace <span class="text-warning fw-bold" id="lbl-cena">200 000 Kč</span>
+                        </label>
+                        <input type="range" class="form-range" id="cena" min="50000" max="1000000" step="5000" value="200000">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Dotace / sleva <span class="text-warning fw-bold" id="lbl-dotace">0 Kč</span>
+                        </label>
+                        <input type="range" class="form-range" id="dotace" min="0" max="500000" step="5000" value="0">
+                    </div>
+
+                    <hr class="border-secondary">
+                    <p class="section-label">Výroba a spotřeba</p>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Roční výroba (kWh/kWp) <span class="text-warning fw-bold" id="lbl-yield">1 000 kWh/kWp</span>
+                        </label>
+                        <input type="range" class="form-range" id="yield" min="700" max="1400" step="10" value="1000">
+                        <div class="d-flex justify-content-between" style="font-size:.7rem;opacity:.5">
+                            <span>sever CZ</span><span>jih CZ</span><span>jih EU</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Vlastní spotřeba vyrobené el. <span class="text-warning fw-bold" id="lbl-spotreba">60 %</span>
+                        </label>
+                        <input type="range" class="form-range" id="spotreba" min="20" max="100" step="5" value="60">
+                    </div>
+
+                    <hr class="border-secondary">
+                    <p class="section-label">Ceny energie</p>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Cena elektřiny (odebraná) <span class="text-warning fw-bold" id="lbl-cenael">6,00 Kč/kWh</span>
+                        </label>
+                        <input type="range" class="form-range" id="cenael" min="2" max="12" step="0.1" value="6">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Výkupní cena (přebytek) <span class="text-warning fw-bold" id="lbl-vykup">2,50 Kč/kWh</span>
+                        </label>
+                        <input type="range" class="form-range" id="vykup" min="0.5" max="8" step="0.1" value="2.5">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Roční zdražení elektřiny <span class="text-warning fw-bold" id="lbl-inflace">3 %</span>
+                        </label>
+                        <input type="range" class="form-range" id="inflace" min="0" max="10" step="0.5" value="3">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Roční degradace panelů <span class="text-warning fw-bold" id="lbl-degr">0,5 %</span>
+                        </label>
+                        <input type="range" class="form-range" id="degr" min="0" max="2" step="0.1" value="0.5">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- VÝSLEDKY -->
+        <div class="col-lg-7">
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <div class="stat-card p-3 text-center">
+                        <div class="section-label mb-1">Čistá investice</div>
+                        <div class="fs-4 fw-bold text-warning" id="res-investice">—</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="stat-card p-3 text-center">
+                        <div class="section-label mb-1">Roční výroba</div>
+                        <div class="fs-4 fw-bold text-info" id="res-vyroba">—</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="stat-card p-3 text-center">
+                        <div class="section-label mb-1">Roční úspora (rok 1)</div>
+                        <div class="fs-4 fw-bold text-success" id="res-uspora">—</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="stat-card p-3 text-center">
+                        <div class="section-label mb-1">Úspora za 25 let</div>
+                        <div class="fs-4 fw-bold text-success" id="res-uspora25">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-box p-4 mb-3 text-center" id="payback-box">
+                <div class="section-label mb-1">Prostá návratnost</div>
+                <div class="payback-badge text-warning" id="res-navratnost">—</div>
+                <div class="mt-1 small" id="res-navratnost-sub"></div>
+            </div>
+
+            <div class="card bg-dark text-white">
+                <div class="card-header fw-bold py-2">
+                    <i class="bi bi-graph-up-arrow me-1 text-warning"></i>Kumulativní cash-flow (25 let)
+                </div>
+                <div class="card-body p-3">
+                    <canvas id="chart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center text-white-50 mt-4" style="font-size:.75rem">
+        Kalkulačka slouží pro orientační odhad. Skutečná návratnost závisí na mnoha faktorech.
+    </p>
+</div>
+
+<script>
+    const ids = ['vykonfve','cena','dotace','yield','spotreba','cenael','vykup','inflace','degr'];
+    const fmts = {
+        vykonfve: v => `${v} kWp`,
+        cena:     v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
+        dotace:   v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
+        yield:    v => `${v} kWh/kWp`,
+        spotreba: v => `${v} %`,
+        cenael:   v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
+        vykup:    v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
+        inflace:  v => `${v} %`,
+        degr:     v => `${v} %`,
+    };
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', () => {
+            document.getElementById('lbl-' + id).textContent = fmts[id](el.value);
+            recalc();
+        });
+    });
+
+    let chart;
+
+    function recalc() {
+        const vykonfve = parseFloat(document.getElementById('vykonfve').value);
+        const cena     = parseFloat(document.getElementById('cena').value);
+        const dotace   = parseFloat(document.getElementById('dotace').value);
+        const yieldKwh = parseFloat(document.getElementById('yield').value);
+        const spotreba = parseFloat(document.getElementById('spotreba').value) / 100;
+        const cenael   = parseFloat(document.getElementById('cenael').value);
+        const vykup    = parseFloat(document.getElementById('vykup').value);
+        const inflace  = parseFloat(document.getElementById('inflace').value) / 100;
+        const degr     = parseFloat(document.getElementById('degr').value) / 100;
+
+        const investice = cena - dotace;
+        const rocniVyroba = vykonfve * yieldKwh;
+
+        const labels = [];
+        const cashflow = [];
+        let cumulative = -investice;
+        let payback = null;
+        let uspora25 = 0;
+        let uspora1 = null;
+
+        for (let rok = 1; rok <= 25; rok++) {
+            const degradFactor = Math.pow(1 - degr, rok - 1);
+            const inflFactor   = Math.pow(1 + inflace, rok - 1);
+            const vyroba = rocniVyroba * degradFactor;
+            const vlastni = vyroba * spotreba;
+            const prebyt  = vyroba * (1 - spotreba);
+            const cenaElRok = cenael * inflFactor;
+            const vykupRok  = vykup  * inflFactor;
+            const uspora = vlastni * cenaElRok + prebyt * vykupRok;
+
+            if (rok === 1) uspora1 = uspora;
+            uspora25 += uspora;
+            cumulative += uspora;
+            labels.push(`${rok}`);
+            cashflow.push(Math.round(cumulative));
+
+            if (payback === null && cumulative >= 0) payback = rok;
+        }
+
+        document.getElementById('res-investice').textContent  = `${Math.round(investice).toLocaleString('cs-CZ')} Kč`;
+        document.getElementById('res-vyroba').textContent     = `${Math.round(rocniVyroba).toLocaleString('cs-CZ')} kWh/rok`;
+        document.getElementById('res-uspora').textContent     = `${Math.round(uspora1).toLocaleString('cs-CZ')} Kč/rok`;
+        document.getElementById('res-uspora25').textContent   = `${Math.round(uspora25).toLocaleString('cs-CZ')} Kč`;
+
+        const box = document.getElementById('payback-box');
+        const badge = document.getElementById('res-navratnost');
+        const sub   = document.getElementById('res-navratnost-sub');
+
+        if (payback) {
+            badge.textContent = `${payback} let`;
+            sub.textContent   = payback <= 12 ? '✓ Výborná návratnost' : payback <= 18 ? '~ Průměrná návratnost' : '⚠ Delší návratnost';
+            box.className = payback <= 18 ? 'result-box p-4 mb-3 text-center' : 'result-box warn p-4 mb-3 text-center';
+        } else {
+            badge.textContent = '> 25 let';
+            sub.textContent   = '⚠ Investice se nesplatí do 25 let';
+            box.className = 'result-box warn p-4 mb-3 text-center';
+        }
+
+        // Chart
+        const colors = cashflow.map(v => v >= 0 ? 'rgba(40,200,100,.8)' : 'rgba(220,60,60,.7)');
+        if (chart) chart.destroy();
+        chart = new Chart(document.getElementById('chart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Kumulativní CF (Kč)',
+                        data: cashflow,
+                        borderColor: '#f6c23e',
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Roční úspora (Kč)',
+                        data: (() => {
+                            const arr = [];
+                            for (let rok = 1; rok <= 25; rok++) {
+                                const d = Math.pow(1 - degr, rok - 1);
+                                const f = Math.pow(1 + inflace, rok - 1);
+                                const v = rocniVyroba * d;
+                                arr.push(Math.round(v * spotreba * cenael * f + v * (1 - spotreba) * vykup * f));
+                            }
+                            return arr;
+                        })(),
+                        backgroundColor: 'rgba(100,180,255,.35)',
+                        borderColor: 'rgba(100,180,255,.7)',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#ccc', boxWidth: 14, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('cs-CZ')} Kč`
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#aaa', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' } },
+                    y: {
+                        ticks: { color: '#aaa', font: { size: 10 }, callback: v => `${(v/1000).toFixed(0)}k` },
+                        grid: { color: 'rgba(255,255,255,.08)' }
+                    }
+                }
+            }
+        });
+    }
+
+    recalc();
+</script>
+</body>
+</html>
