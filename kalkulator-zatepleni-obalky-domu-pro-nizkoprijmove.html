@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulátor zateplení a dotace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f4f8; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .card-header { border-radius: 12px 12px 0 0 !important; }
+        .result-box {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            border-left: 4px solid #0d6efd;
+        }
+        .result-box.green  { border-left-color: #198754; }
+        .result-box.orange { border-left-color: #fd7e14; }
+        .result-box.purple { border-left-color: #6f42c1; }
+        .result-label { font-size: .82rem; color: #6c757d; margin-bottom: 2px; }
+        .result-value { font-size: 1.45rem; font-weight: 700; color: #212529; }
+        .result-value.positive { color: #198754; }
+        .result-value.negative { color: #dc3545; }
+        .section-title { font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+            text-transform: uppercase; color: #6c757d; margin-bottom: .75rem; }
+        .input-group-text { min-width: 56px; justify-content: center; }
+        table th { font-size: .82rem; color: #6c757d; font-weight: 600; }
+        table td { vertical-align: middle; }
+        .badge-dotace { font-size: .95rem; }
+    </style>
+</head>
+<body>
+<div class="container py-4" style="max-width:860px;">
+
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">🏠 Kalkulátor zateplení a dotace</h2>
+        <p class="text-muted mb-0">Vypočítejte úspory, výši dotace a splátky pro zateplení obálky domu</p>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- ===== ENERGIE ===== -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white fw-semibold">⚡ Energie a úspora</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Roční náklady na topení (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="topeniRocne" class="form-control" value="80000" min="0" step="1000">
+                                <span class="input-group-text">Kč</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Úspora po zateplení (%)</label>
+                            <div class="input-group">
+                                <input type="number" id="usporaPct" class="form-control" value="40" min="0" max="100">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PLOCHY A CENY ===== -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark fw-semibold">📐 Plochy a ceny zateplení</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>Položka</th>
+                                <th>Cena za 1 m² (Kč)</th>
+                                <th>Plocha (m²)</th>
+                                <th class="text-end">Suma (Kč)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td><span class="fw-semibold">Stěny / sokl</span></td>
+                                <td><input type="number" id="cenaSteny" class="form-control form-control-sm" value="2000" min="0" style="max-width:110px;"></td>
+                                <td><input type="number" id="plohaSteny" class="form-control form-control-sm" value="125" min="0" style="max-width:90px;"></td>
+                                <td class="text-end fw-bold" id="sumaSteny">250 000 Kč</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-semibold">Strop</span></td>
+                                <td><input type="number" id="cenaStrop" class="form-control form-control-sm" value="750" min="0" style="max-width:110px;"></td>
+                                <td><input type="number" id="plohaStrop" class="form-control form-control-sm" value="0" min="0" style="max-width:90px;"></td>
+                                <td class="text-end fw-bold" id="sumaStrop">0 Kč</td>
+                            </tr>
+                            <tr>
+                                <td><span class="fw-semibold">Okna / dveře</span></td>
+                                <td><input type="number" id="cenaOkna" class="form-control form-control-sm" value="8000" min="0" style="max-width:110px;"></td>
+                                <td><input type="number" id="plohaOkna" class="form-control form-control-sm" value="0" min="0" style="max-width:90px;"></td>
+                                <td class="text-end fw-bold" id="sumaOkna">0 Kč</td>
+                            </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="fw-bold">Celková cena zateplení</td>
+                                <td class="text-end fw-bold fs-5" id="celkovaCena">250 000 Kč</td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DOTACE ===== -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white fw-semibold">💰 Dotace</div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-6">
+                            <label class="form-label">Maximální výše dotace (Kč)</label>
+                            <div class="input-group">
+                                <input type="number" id="maxDotace" class="form-control" value="250000" min="0" step="10000">
+                                <span class="input-group-text">Kč</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="result-box green">
+                                <div class="result-label">Přiznaná dotace (min z max. dotace a celk. ceny)</div>
+                                <div class="result-value positive" id="sumaDotace">250 000 Kč</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VÝSLEDKY ===== -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white fw-semibold">📊 Výsledky</div>
+                <div class="card-body">
+
+                    <p class="section-title">Finanční přehled</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="result-box">
+                                <div class="result-label">Měsíční platba nyní</div>
+                                <div class="result-value" id="mesPlNyni">6 667 Kč</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="result-box green">
+                                <div class="result-label">Měsíční platba po zateplení</div>
+                                <div class="result-value positive" id="mesPlPo">4 000 Kč</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="result-box orange">
+                                <div class="result-label">Roční úspora na energiích</div>
+                                <div class="result-value" id="rocniUspora">32 000 Kč</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="result-box purple">
+                                <div class="result-label">Cena po odečtení dotace</div>
+                                <div class="result-value" id="cenaPoOdecteni">310 000 Kč</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="section-title">Splátky dotace a rozdíl vůči úspoře</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle text-center mb-0">
+                            <thead class="table-dark">
+                            <tr>
+                                <th class="text-start">Délka splácení</th>
+                                <th>Měsíční splátka (Kč)</th>
+                                <th>Měsíční úspora (Kč)</th>
+                                <th>Rozdíl (Kč)</th>
+                                <th>Stav</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="text-start fw-semibold">10 let (120 měs.)</td>
+                                <td id="splatka10">2 083 Kč</td>
+                                <td id="usporaM">2 667 Kč</td>
+                                <td id="rozdil10" class="fw-bold">583 Kč</td>
+                                <td id="stav10"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-start fw-semibold">15 let (180 měs.)</td>
+                                <td id="splatka15">1 389 Kč</td>
+                                <td id="usporaM2">2 667 Kč</td>
+                                <td id="rozdil15" class="fw-bold">1 278 Kč</td>
+                                <td id="stav15"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted">* Kladný rozdíl znamená, že měsíční úspora <strong>převyšuje</strong> splátku dotace.</small>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /row -->
+</div><!-- /container -->
+
+<script>
+    const fmt = v => Math.round(v).toLocaleString('cs-CZ') + ' Kč';
+    const fmtN = v => {
+        const s = Math.round(v).toLocaleString('cs-CZ') + ' Kč';
+        return v >= 0 ? '+' + s : s;
+    };
+
+    function calc() {
+        const topeni   = +document.getElementById('topeniRocne').value || 0;
+        const usporaPct= +document.getElementById('usporaPct').value   || 0;
+        const maxDot   = +document.getElementById('maxDotace').value   || 0;
+
+        const cenaS = +document.getElementById('cenaSteny').value || 0;
+        const ploS  = +document.getElementById('plohaSteny').value || 0;
+        const cenaT = +document.getElementById('cenaStrop').value || 0;
+        const ploT  = +document.getElementById('plohaStrop').value || 0;
+        const cenaO = +document.getElementById('cenaOkna').value  || 0;
+        const ploO  = +document.getElementById('plohaOkna').value || 0;
+
+        const sumaS = cenaS * ploS;
+        const sumaT = cenaT * ploT;
+        const sumaO = cenaO * ploO;
+        const celkova = sumaS + sumaT + sumaO;
+
+        const dotace = Math.min(maxDot, celkova);
+        const cenaPoOd = celkova - dotace;
+
+        const rocniUspora = topeni * (usporaPct / 100);
+        const mesUspora   = rocniUspora / 12;
+        const mesNyni     = topeni / 12;
+        const mesPo       = mesNyni - mesUspora;
+
+        const splatka10 = dotace / 120;
+        const splatka15 = dotace / 180;
+        const rozdil10  = mesUspora - splatka10;
+        const rozdil15  = mesUspora - splatka15;
+
+        // fill table sums
+        document.getElementById('sumaSteny').textContent = fmt(sumaS);
+        document.getElementById('sumaStrop').textContent = fmt(sumaT);
+        document.getElementById('sumaOkna').textContent  = fmt(sumaO);
+        document.getElementById('celkovaCena').textContent = fmt(celkova);
+        document.getElementById('sumaDotace').textContent  = fmt(dotace);
+
+        // fill results
+        document.getElementById('mesPlNyni').textContent    = fmt(mesNyni);
+        document.getElementById('mesPlPo').textContent      = fmt(mesPo);
+        document.getElementById('rocniUspora').textContent  = fmt(rocniUspora);
+        document.getElementById('cenaPoOdecteni').textContent = fmt(cenaPoOd);
+
+        document.getElementById('splatka10').textContent = fmt(splatka10);
+        document.getElementById('splatka15').textContent = fmt(splatka15);
+        document.getElementById('usporaM').textContent   = fmt(mesUspora);
+        document.getElementById('usporaM2').textContent  = fmt(mesUspora);
+
+        const r10el = document.getElementById('rozdil10');
+        r10el.textContent = fmt(Math.abs(rozdil10));
+        r10el.className = 'fw-bold ' + (rozdil10 >= 0 ? 'text-success' : 'text-danger');
+
+        const r15el = document.getElementById('rozdil15');
+        r15el.textContent = fmt(Math.abs(rozdil15));
+        r15el.className = 'fw-bold ' + (rozdil15 >= 0 ? 'text-success' : 'text-danger');
+
+        const badge = (v) => v >= 0
+            ? '<span class="badge bg-success">✔ Úspora > splátka</span>'
+            : '<span class="badge bg-danger">✖ Splátka > úspora</span>';
+        document.getElementById('stav10').innerHTML = badge(rozdil10);
+        document.getElementById('stav15').innerHTML = badge(rozdil15);
+    }
+
+    // attach listeners to all inputs
+    document.querySelectorAll('input[type=number]').forEach(el => {
+        el.addEventListener('input', calc);
+    });
+
+    calc();
+</script>
+</body>
+</html>
