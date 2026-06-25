@@ -116,7 +116,7 @@
         <!-- ===== DOTACE ===== -->
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-success text-white fw-semibold">💰 Dotace</div>
+                <div class="card-header bg-success text-white fw-semibold">💰 Dotace a cena</div>
                 <div class="card-body">
                     <div class="row g-3 align-items-end mb-3">
                         <div class="col-sm-6">
@@ -197,7 +197,7 @@
                         </div>
                     </div>
 
-                    <p class="section-title">Splátky dotace a rozdíl vůči úspoře</p>
+                    <p class="section-title">Splátky úvěru a měsíční úspora</p>
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle text-center mb-0">
                             <thead class="table-dark">
@@ -216,13 +216,6 @@
                                 <td id="usporaM">2 667 Kč</td>
                                 <td id="rozdil10" class="fw-bold">583 Kč</td>
                                 <td id="stav10"></td>
-                            </tr>
-                            <tr>
-                                <td class="text-start fw-semibold">15 let (180 měs.)</td>
-                                <td id="splatka15">1 389 Kč</td>
-                                <td id="usporaM2">2 667 Kč</td>
-                                <td id="rozdil15" class="fw-bold">1 278 Kč</td>
-                                <td id="stav15"></td>
                             </tr>
                             </tbody>
                         </table>
@@ -337,8 +330,13 @@
         calcDownstream();
     });
 
-    // Bezúročný úvěr edited manually → update only Výše k doplacení, keep dotace fixed
-    document.getElementById('bezurocnyUver').addEventListener('input', calcDownstream);
+    // Bezúročný úvěr edited manually → cap at Přiznaná dotace, update only Výše k doplacení
+    document.getElementById('bezurocnyUver').addEventListener('input', () => {
+        const maxVal = +document.getElementById('sumaDotace').value || 0;
+        const el = document.getElementById('bezurocnyUver');
+        if (+el.value > maxVal) el.value = maxVal;
+        calcDownstream();
+    });
 
     // Výše k doplacení → jen downstream
     document.getElementById('vyseKDoplaceni').addEventListener('input', calcDownstream);
