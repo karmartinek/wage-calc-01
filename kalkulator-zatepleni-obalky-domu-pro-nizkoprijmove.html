@@ -18,8 +18,9 @@
         .result-box.green  { border-left-color: #198754; }
         .result-box.orange { border-left-color: #fd7e14; }
         .result-box.purple { border-left-color: #6f42c1; }
-        .result-label { font-size: .82rem; color: #6c757d; margin-bottom: 2px; }
-        .result-value { font-size: 1.45rem; font-weight: 700; color: #212529; }
+        .result-box { display: flex; flex-direction: column; }
+        .result-label { font-size: .82rem; color: #6c757d; margin-bottom: .25rem; }
+        .result-value { font-size: 1.45rem; font-weight: 700; color: #212529; margin-top: auto; }
         .result-value.positive { color: #198754; }
         .result-value.negative { color: #dc3545; }
         .section-title { font-size: .75rem; font-weight: 700; letter-spacing: .08em;
@@ -169,27 +170,27 @@
                 <div class="card-body">
 
                     <p class="section-title">Finanční přehled</p>
-                    <div class="row g-3 mb-4">
-                        <div class="col-6 col-md-3">
-                            <div class="result-box">
+                    <div class="row g-3 mb-4 align-items-stretch">
+                        <div class="col-6 col-md-3 d-flex">
+                            <div class="result-box w-100">
                                 <div class="result-label">Měsíční platba nyní</div>
                                 <div class="result-value" id="mesPlNyni">6 667 Kč</div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="result-box green">
+                        <div class="col-6 col-md-3 d-flex">
+                            <div class="result-box green w-100">
                                 <div class="result-label">Měsíční platba po zateplení</div>
                                 <div class="result-value positive" id="mesPlPo">4 000 Kč</div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="result-box orange">
+                        <div class="col-6 col-md-3 d-flex">
+                            <div class="result-box orange w-100">
                                 <div class="result-label">Roční úspora na energiích</div>
                                 <div class="result-value" id="rocniUspora">32 000 Kč</div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <div class="result-box purple">
+                        <div class="col-6 col-md-3 d-flex">
+                            <div class="result-box purple w-100">
                                 <div class="result-label">Cena po odečtení dotace</div>
                                 <div class="result-value" id="cenaPoOdecteni">310 000 Kč</div>
                             </div>
@@ -281,7 +282,7 @@
         document.getElementById('mesPlNyni').textContent      = fmt(mesNyni);
         document.getElementById('mesPlPo').textContent        = fmt(mesPo);
         document.getElementById('rocniUspora').textContent    = fmt(rocniUspora);
-        document.getElementById('cenaPoOdecteni').textContent = fmt(bezurocny);
+        document.getElementById('cenaPoOdecteni').textContent = fmt(bezurocny + vyseKDop);
 
         document.getElementById('splatka10').textContent = fmt(splatka10);
         document.getElementById('splatka15').textContent = fmt(splatka15);
