@@ -47,16 +47,17 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Cena instalace <span class="text-warning fw-bold" id="lbl-cena">200 000 Kč</span>
+                            Cena instalace <span class="text-warning fw-bold" id="lbl-cena">350 000 Kč</span>
                         </label>
-                        <input type="range" class="form-range" id="cena" min="50000" max="1000000" step="5000" value="200000">
+                        <input type="range" class="form-range" id="cena" min="50000" max="1000000" step="5000" value="350000">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
                             Dotace / sleva <span class="text-warning fw-bold" id="lbl-dotace">0 Kč</span>
+                            <small class="text-white-50 ms-1" id="lbl-dotace-max"></small>
                         </label>
-                        <input type="range" class="form-range" id="dotace" min="0" max="500000" step="5000" value="0">
+                        <input type="range" class="form-range" id="dotace" min="0" max="116667" step="5000" value="0">
                     </div>
 
                     <hr class="border-secondary">
@@ -64,9 +65,9 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Roční výroba (kWh/kWp) <span class="text-warning fw-bold" id="lbl-yield">1 000 kWh/kWp</span>
+                            Roční výroba (kWh/kWp) <span class="text-warning fw-bold" id="lbl-yield">1 090 kWh/kWp</span>
                         </label>
-                        <input type="range" class="form-range" id="yield" min="700" max="1400" step="10" value="1000">
+                        <input type="range" class="form-range" id="yield" min="700" max="1400" step="10" value="1090">
                         <div class="d-flex justify-content-between" style="font-size:.7rem;opacity:.5">
                             <span>sever CZ</span><span>jih CZ</span><span>jih EU</span>
                         </div>
@@ -74,9 +75,9 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Vlastní spotřeba vyrobené el. <span class="text-warning fw-bold" id="lbl-spotreba">60 %</span>
+                            Vlastní spotřeba vyrobené el. <span class="text-warning fw-bold" id="lbl-spotreba">80 %</span>
                         </label>
-                        <input type="range" class="form-range" id="spotreba" min="20" max="100" step="5" value="60">
+                        <input type="range" class="form-range" id="spotreba" min="20" max="100" step="5" value="80">
                     </div>
 
                     <hr class="border-secondary">
@@ -84,9 +85,9 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Cena elektřiny (odebraná) <span class="text-warning fw-bold" id="lbl-cenael">6,00 Kč/kWh</span>
+                            Cena elektřiny (odebraná) <span class="text-warning fw-bold" id="lbl-cenael">4,80 Kč/kWh</span>
                         </label>
-                        <input type="range" class="form-range" id="cenael" min="2" max="12" step="0.1" value="6">
+                        <input type="range" class="form-range" id="cenael" min="2" max="12" step="0.1" value="4.8">
                     </div>
 
                     <div class="mb-3">
@@ -98,16 +99,16 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Roční zdražení elektřiny <span class="text-warning fw-bold" id="lbl-inflace">3 %</span>
+                            Roční zdražení elektřiny <span class="text-warning fw-bold" id="lbl-inflace">9 %</span>
                         </label>
-                        <input type="range" class="form-range" id="inflace" min="0" max="10" step="0.5" value="3">
+                        <input type="range" class="form-range" id="inflace" min="0" max="15" step="0.5" value="9">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Inflace (znehodnocení investice) <span class="text-warning fw-bold" id="lbl-inflace-inv">6 %</span>
+                            Inflace (znehodnocení investice) <span class="text-warning fw-bold" id="lbl-inflace-inv">8 %</span>
                         </label>
-                        <input type="range" class="form-range" id="inflace-inv" min="0" max="15" step="0.5" value="6">
+                        <input type="range" class="form-range" id="inflace-inv" min="0" max="15" step="0.5" value="8">
                         <div class="d-flex justify-content-between" style="font-size:.7rem;opacity:.5">
                             <span>0 %</span><span>reálná hodnota peněz</span><span>15 %</span>
                         </div>
@@ -201,13 +202,26 @@
         'inflace-inv': v => `${v} %`,
     };
 
+    function updateDotaceMax() {
+        const cena = parseFloat(document.getElementById('cena').value);
+        const max = Math.round(cena / 3 / 5000) * 5000;
+        const dotaceEl = document.getElementById('dotace');
+        dotaceEl.max = max;
+        if (parseFloat(dotaceEl.value) > max) { dotaceEl.value = max; }
+        const maxLabel = document.getElementById('lbl-dotace-max');
+        if (maxLabel) maxLabel.textContent = `(max ${max.toLocaleString('cs-CZ')} Kč)`;
+    }
+
     ids.forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', () => {
             document.getElementById('lbl-' + id).textContent = fmts[id](el.value);
+            if (id === 'cena') updateDotaceMax();
             recalc();
         });
     });
+
+    updateDotaceMax();
 
     let chart;
 
