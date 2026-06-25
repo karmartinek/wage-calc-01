@@ -310,9 +310,9 @@
 
         const base     = celkovaCenaPrj || celkova;
         const dotace   = Math.min(maxDot, base);
-        const bezurocny = base - dotace;
+        const bezurocny = Math.min(base - dotace, dotace);
 
-        document.getElementById('sumaDotace').value   = Math.round(dotace);
+        document.getElementById('sumaDotace').value    = Math.round(dotace);
         document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
         calcDownstream();
     }
