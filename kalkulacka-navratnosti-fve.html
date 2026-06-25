@@ -91,9 +91,9 @@
 
                     <div class="mb-3">
                         <label class="form-label d-flex justify-content-between">
-                            Výkupní cena (přebytek) <span class="text-warning fw-bold" id="lbl-vykup">2,50 Kč/kWh</span>
+                            Výkupní cena (přebytek) <span class="text-warning fw-bold" id="lbl-vykup">0,00 Kč/kWh</span>
                         </label>
-                        <input type="range" class="form-range" id="vykup" min="0.5" max="8" step="0.1" value="2.5">
+                        <input type="range" class="form-range" id="vykup" min="0" max="8" step="0.1" value="0">
                     </div>
 
                     <div class="mb-3">
@@ -101,6 +101,16 @@
                             Roční zdražení elektřiny <span class="text-warning fw-bold" id="lbl-inflace">3 %</span>
                         </label>
                         <input type="range" class="form-range" id="inflace" min="0" max="10" step="0.5" value="3">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between">
+                            Inflace (znehodnocení investice) <span class="text-warning fw-bold" id="lbl-inflace-inv">6 %</span>
+                        </label>
+                        <input type="range" class="form-range" id="inflace-inv" min="0" max="15" step="0.5" value="6">
+                        <div class="d-flex justify-content-between" style="font-size:.7rem;opacity:.5">
+                            <span>0 %</span><span>reálná hodnota peněz</span><span>15 %</span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -143,10 +153,21 @@
                 </div>
             </div>
 
-            <div class="result-box p-4 mb-3 text-center" id="payback-box">
-                <div class="section-label mb-1">Prostá návratnost</div>
-                <div class="payback-badge text-warning" id="res-navratnost">—</div>
-                <div class="mt-1 small" id="res-navratnost-sub"></div>
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <div class="result-box p-3 text-center" id="payback-box">
+                        <div class="section-label mb-1">Nominální návratnost</div>
+                        <div class="payback-badge text-warning" id="res-navratnost">—</div>
+                        <div class="mt-1 small" id="res-navratnost-sub"></div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="result-box p-3 text-center" id="payback-box-real">
+                        <div class="section-label mb-1">Reálná návratnost <i class="bi bi-info-circle" title="Zohledňuje inflaci – skutečná hodnota peněz"></i></div>
+                        <div class="payback-badge text-info" id="res-navratnost-real">—</div>
+                        <div class="mt-1 small" id="res-navratnost-real-sub"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="card bg-dark text-white">
@@ -166,17 +187,18 @@
 </div>
 
 <script>
-    const ids = ['vykonfve','cena','dotace','yield','spotreba','cenael','vykup','inflace','degr'];
+    const ids = ['vykonfve','cena','dotace','yield','spotreba','cenael','vykup','inflace','degr','inflace-inv'];
     const fmts = {
-        vykonfve: v => `${v} kWp`,
-        cena:     v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
-        dotace:   v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
-        yield:    v => `${v} kWh/kWp`,
-        spotreba: v => `${v} %`,
-        cenael:   v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
-        vykup:    v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
-        inflace:  v => `${v} %`,
-        degr:     v => `${v} %`,
+        vykonfve:     v => `${v} kWp`,
+        cena:         v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
+        dotace:       v => `${Number(v).toLocaleString('cs-CZ')} Kč`,
+        yield:        v => `${v} kWh/kWp`,
+        spotreba:     v => `${v} %`,
+        cenael:       v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
+        vykup:        v => `${parseFloat(v).toFixed(2)} Kč/kWh`,
+        inflace:      v => `${v} %`,
+        degr:         v => `${v} %`,
+        'inflace-inv': v => `${v} %`,
     };
 
     ids.forEach(id => {
@@ -190,43 +212,52 @@
     let chart;
 
     function recalc() {
-        const vykonfve = parseFloat(document.getElementById('vykonfve').value);
-        const cena     = parseFloat(document.getElementById('cena').value);
-        const dotace   = parseFloat(document.getElementById('dotace').value);
-        const yieldKwh = parseFloat(document.getElementById('yield').value);
-        const spotreba = parseFloat(document.getElementById('spotreba').value) / 100;
-        const cenael   = parseFloat(document.getElementById('cenael').value);
-        const vykup    = parseFloat(document.getElementById('vykup').value);
-        const inflace  = parseFloat(document.getElementById('inflace').value) / 100;
-        const degr     = parseFloat(document.getElementById('degr').value) / 100;
+        const vykonfve   = parseFloat(document.getElementById('vykonfve').value);
+        const cena       = parseFloat(document.getElementById('cena').value);
+        const dotace     = parseFloat(document.getElementById('dotace').value);
+        const yieldKwh   = parseFloat(document.getElementById('yield').value);
+        const spotreba   = parseFloat(document.getElementById('spotreba').value) / 100;
+        const cenael     = parseFloat(document.getElementById('cenael').value);
+        const vykup      = parseFloat(document.getElementById('vykup').value);
+        const inflace    = parseFloat(document.getElementById('inflace').value) / 100;
+        const degr       = parseFloat(document.getElementById('degr').value) / 100;
+        const inflaceInv = parseFloat(document.getElementById('inflace-inv').value) / 100;
 
         const investice = cena - dotace;
         const rocniVyroba = vykonfve * yieldKwh;
 
         const labels = [];
-        const cashflow = [];
+        const cashflow = [];        // nominální CF
+        const cashflowReal = [];    // reálný CF (diskontovaný inflací investice)
         let cumulative = -investice;
+        let cumulativeReal = -investice;
         let payback = null;
+        let paybackReal = null;
         let uspora25 = 0;
         let uspora1 = null;
 
         for (let rok = 1; rok <= 25; rok++) {
             const degradFactor = Math.pow(1 - degr, rok - 1);
             const inflFactor   = Math.pow(1 + inflace, rok - 1);
+            const discFactor   = Math.pow(1 + inflaceInv, rok);   // znehodnocení peněz
             const vyroba = rocniVyroba * degradFactor;
             const vlastni = vyroba * spotreba;
             const prebyt  = vyroba * (1 - spotreba);
             const cenaElRok = cenael * inflFactor;
             const vykupRok  = vykup  * inflFactor;
             const uspora = vlastni * cenaElRok + prebyt * vykupRok;
+            const usporaReal = uspora / discFactor;   // reálná hodnota úspory v dnešních Kč
 
             if (rok === 1) uspora1 = uspora;
             uspora25 += uspora;
             cumulative += uspora;
+            cumulativeReal += usporaReal;
             labels.push(`${rok}`);
             cashflow.push(Math.round(cumulative));
+            cashflowReal.push(Math.round(cumulativeReal));
 
             if (payback === null && cumulative >= 0) payback = rok;
+            if (paybackReal === null && cumulativeReal >= 0) paybackReal = rok;
         }
 
         document.getElementById('res-investice').textContent  = `${Math.round(investice).toLocaleString('cs-CZ')} Kč`;
@@ -240,12 +271,26 @@
 
         if (payback) {
             badge.textContent = `${payback} let`;
-            sub.textContent   = payback <= 12 ? '✓ Výborná návratnost' : payback <= 18 ? '~ Průměrná návratnost' : '⚠ Delší návratnost';
-            box.className = payback <= 18 ? 'result-box p-4 mb-3 text-center' : 'result-box warn p-4 mb-3 text-center';
+            sub.textContent   = payback <= 12 ? '✓ Výborná' : payback <= 18 ? '~ Průměrná' : '⚠ Delší';
+            box.className = payback <= 18 ? 'result-box p-3 text-center' : 'result-box warn p-3 text-center';
         } else {
             badge.textContent = '> 25 let';
-            sub.textContent   = '⚠ Investice se nesplatí do 25 let';
-            box.className = 'result-box warn p-4 mb-3 text-center';
+            sub.textContent   = '⚠ Nesplatí se';
+            box.className = 'result-box warn p-3 text-center';
+        }
+
+        const boxReal  = document.getElementById('payback-box-real');
+        const badgeReal = document.getElementById('res-navratnost-real');
+        const subReal   = document.getElementById('res-navratnost-real-sub');
+
+        if (paybackReal) {
+            badgeReal.textContent = `${paybackReal} let`;
+            subReal.textContent   = paybackReal <= 14 ? '✓ Výborná' : paybackReal <= 20 ? '~ Průměrná' : '⚠ Delší';
+            boxReal.className = paybackReal <= 20 ? 'result-box p-3 text-center' : 'result-box warn p-3 text-center';
+        } else {
+            badgeReal.textContent = '> 25 let';
+            subReal.textContent   = '⚠ Nesplatí se';
+            boxReal.className = 'result-box warn p-3 text-center';
         }
 
         // Chart
@@ -258,10 +303,22 @@
                 datasets: [
                     {
                         type: 'line',
-                        label: 'Kumulativní CF (Kč)',
+                        label: 'Nominální CF (Kč)',
                         data: cashflow,
                         borderColor: '#f6c23e',
                         borderWidth: 2,
+                        pointRadius: 2,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'line',
+                        label: 'Reálný CF – dnešní Kč (Kč)',
+                        data: cashflowReal,
+                        borderColor: '#4dd0e1',
+                        borderWidth: 2,
+                        borderDash: [5, 4],
                         pointRadius: 2,
                         tension: 0.3,
                         fill: false,
