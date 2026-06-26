@@ -3,7 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulátor zateplení a dotace</title>
+
+    <!-- SEO základní -->
+    <title>Kalkulátor zateplení a dotace | Výpočet úspor a splátky úvěru</title>
+    <meta name="description" content="Bezplatný online kalkulátor zateplení obálky domu. Vypočítejte výši dotace, bezúročného úvěru, měsíčních splátek a úspor na energiích po zateplení.">
+    <meta name="keywords" content="kalkulátor zateplení, dotace na zateplení, úspora energií, bezúročný úvěr zateplení, zateplení domu, Nová zelená úsporám, výpočet dotace">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Kalkulátor zateplení">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="http://vypocet-mzdy-cz.eu/kalkulator-zatepleni-obalky-domu-pro-nizkoprijmove.html">
+
+    <!-- Open Graph (Facebook, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Kalkulátor zateplení a dotace | Výpočet úspor a splátky úvěru">
+    <meta property="og:description" content="Zjistěte, kolik ušetříte po zateplení domu. Výpočet dotace, bezúročného úvěru a měsíčních splátek online zdarma.">
+    <meta property="og:url" content="http://vypocet-mzdy-cz.eu/kalkulator-zatepleni-obalky-domu-pro-nizkoprijmove.html">
+    <meta property="og:locale" content="cs_CZ">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Kalkulátor zateplení a dotace">
+    <meta name="twitter:description" content="Vypočítejte výši dotace, bezúročného úvěru a úspor na energiích po zateplení domu.">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Kalkulátor zateplení a dotace",
+            "description": "Online kalkulátor pro výpočet dotace, bezúročného úvěru, měsíčních splátek a úspor na energiích při zateplení obálky domu.",
+            "applicationCategory": "FinanceApplication",
+            "inLanguage": "cs",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "CZK"
+            }
+        }
+    </script>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background: #f0f4f8; }
@@ -337,11 +376,13 @@
     // Délka úvěru → jen přepočet splátky
     document.getElementById('delkaUveru').addEventListener('input', calcDownstream);
 
-    // Přiznaná dotace edited manually → update bezurocny, recalc downstream
+    // Přiznaná dotace edited manually → update bezurocny (capped), recalc downstream
     document.getElementById('sumaDotace').addEventListener('input', () => {
         const celkovaCenaPrj = +document.getElementById('celkovaCenaProjektu').value || 0;
-        const dotace = +document.getElementById('sumaDotace').value || 0;
-        document.getElementById('bezurocnyUver').value = Math.round(Math.max(0, celkovaCenaPrj - dotace));
+        const dotace  = +document.getElementById('sumaDotace').value || 0;
+        const maxBezur = dotace === 0 ? 400000 : dotace;
+        const bezurocny = Math.min(Math.max(0, celkovaCenaPrj - dotace), maxBezur);
+        document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
         calcDownstream();
     });
 
