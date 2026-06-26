@@ -173,7 +173,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-end">
                         <div class="col-sm-4">
                             <label class="form-label mb-1" style="font-size:.82rem;color:#198754;font-weight:600;">Přiznaná dotace (Kč)</label>
                             <div class="input-group">
@@ -183,12 +183,18 @@
                             <small class="text-muted">Auto: min(max. dotace, celk. cena)</small>
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label mb-1" style="font-size:.82rem;color:#fd7e14;font-weight:600;">Výše bezúročného úvěru (Kč)</label>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="form-label mb-0" style="font-size:.82rem;color:#fd7e14;font-weight:600;">Výše bezúročného úvěru (Kč)</label>
+                                <div class="form-check mb-0 ms-auto">
+                                    <input class="form-check-input" type="checkbox" id="lockBezurocny">
+                                    <label class="form-check-label" for="lockBezurocny" style="font-size:.75rem;color:#6c757d;">Nepřepočítávat</label>
+                                </div>
+                            </div>
                             <div class="input-group">
                                 <input type="number" id="bezurocnyUver" class="form-control fw-bold" value="310000" min="0" step="1000">
                                 <span class="input-group-text">Kč</span>
                             </div>
-                            <small class="text-muted">Auto: celk. cena − dotace</small>
+                            <small class="text-muted" id="bezurocnyNote">Auto: celk. cena − dotace</small>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label mb-1" style="font-size:.82rem;color:#6c757d;">Výše k doplacení (Kč)</label>
@@ -196,6 +202,7 @@
                                 <input type="number" id="vyseKDoplaceni" class="form-control fw-bold" value="0" min="0" step="1000">
                                 <span class="input-group-text">Kč</span>
                             </div>
+                            <small class="invisible">x</small>
                         </div>
                     </div>
                 </div>
@@ -363,8 +370,10 @@
         const maxBezur  = dotace === 0 ? 400000 : dotace;
         const bezurocny = Math.min(base - dotace, maxBezur);
 
-        document.getElementById('sumaDotace').value    = Math.round(dotace);
-        document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
+        document.getElementById('sumaDotace').value = Math.round(dotace);
+        if (!document.getElementById('lockBezurocny').checked) {
+            document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
+        }
         calcDownstream();
     }
 
@@ -380,9 +389,11 @@
     document.getElementById('sumaDotace').addEventListener('input', () => {
         const celkovaCenaPrj = +document.getElementById('celkovaCenaProjektu').value || 0;
         const dotace  = +document.getElementById('sumaDotace').value || 0;
-        const maxBezur = dotace === 0 ? 400000 : dotace;
-        const bezurocny = Math.min(Math.max(0, celkovaCenaPrj - dotace), maxBezur);
-        document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
+        if (!document.getElementById('lockBezurocny').checked) {
+            const maxBezur = dotace === 0 ? 400000 : dotace;
+            const bezurocny = Math.min(Math.max(0, celkovaCenaPrj - dotace), maxBezur);
+            document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
+        }
         calcDownstream();
     });
 
@@ -397,6 +408,13 @@
 
     // Výše k doplacení → jen downstream
     document.getElementById('vyseKDoplaceni').addEventListener('input', calcDownstream);
+
+    // Checkbox lock bezúročného úvěru
+    document.getElementById('lockBezurocny').addEventListener('change', function() {
+        const note = document.getElementById('bezurocnyNote');
+        note.textContent = this.checked ? '🔒 Hodnota uzamčena' : 'Auto: celk. cena − dotace';
+        if (!this.checked) calcAll();
+    });
 
     calcAll();
 </script>
