@@ -319,9 +319,10 @@
         const ploO  = +document.getElementById('plohaOkna').value || 0;
         const celkova = cenaS*ploS + cenaT*ploT + cenaO*ploO;
 
-        const base     = celkovaCenaPrj || celkova;
-        const dotace   = Math.min(maxDot, base);
-        const bezurocny = Math.min(base - dotace, dotace);
+        const base      = celkovaCenaPrj || celkova;
+        const dotace    = Math.min(maxDot, base);
+        const maxBezur  = dotace === 0 ? 400000 : dotace;
+        const bezurocny = Math.min(base - dotace, maxBezur);
 
         document.getElementById('sumaDotace').value    = Math.round(dotace);
         document.getElementById('bezurocnyUver').value = Math.round(bezurocny);
@@ -344,9 +345,10 @@
         calcDownstream();
     });
 
-    // Bezúročný úvěr edited manually → cap at Přiznaná dotace, update only Výše k doplacení
+    // Bezúročný úvěr edited manually → cap based on dotace (0 → max 4 000 000, else → max dotace)
     document.getElementById('bezurocnyUver').addEventListener('input', () => {
-        const maxVal = +document.getElementById('sumaDotace').value || 0;
+        const dotace = +document.getElementById('sumaDotace').value || 0;
+        const maxVal = dotace === 0 ? 400000 : dotace;
         const el = document.getElementById('bezurocnyUver');
         if (+el.value > maxVal) el.value = maxVal;
         calcDownstream();
